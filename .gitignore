@@ -25,6 +25,7 @@ cmake_install.cmake
 *.so
 
 !bin/running_physics.dll
+!bin/running_physics.LICENSE.txt
 
 # Training artifacts
 runs/

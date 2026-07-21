@@ -1,0 +1,35 @@
+running_physics.dll Binary License
+
+Copyright (c) the running_physics.dll copyright holder. All rights reserved.
+
+The file bin/running_physics.dll is a proprietary precompiled physics backend.
+It is not licensed under the Apache License, Version 2.0, even when distributed
+in the same repository as Apache-2.0-licensed source code.
+
+Permission is granted to download, copy, use, and redistribute unmodified copies
+of bin/running_physics.dll only as part of this repository or forks,
+redistributions, and archives of this repository, provided that this license
+notice is included with the binary.
+
+You may not:
+
+- modify, patch, decompile, disassemble, or reverse engineer the binary, except
+  where applicable law expressly permits such activity;
+- distribute modified versions of the binary;
+- distribute the binary as a standalone product or as part of an unrelated
+  project without separate permission;
+- represent the binary as open source or as licensed under the Apache License,
+  Version 2.0;
+- use the QWOP name, trademarks, assets, or other related rights except for
+  reasonable descriptive references.
+
+Replacement physics backends may be implemented against the public ABI described
+in docs/physics-backend-abi.md. This license does not restrict independently
+implemented replacement backends that do not contain or derive from
+bin/running_physics.dll.
+
+The binary is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to warranties of merchantability, fitness for
+a particular purpose, title, and non-infringement. In no event shall the
+copyright holder be liable for any claim, damages, or other liability arising
+from use of the binary.

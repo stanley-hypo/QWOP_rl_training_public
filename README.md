@@ -1,6 +1,6 @@
 # 强化学习 QWOP 训练环境
 
-本项目包含 QWOP 模拟物理环境和PPO强化学习框架，用于探索 QWOP 游戏的极限。
+本项目包含 QWOP 模拟物理环境和 PPO 强化学习框架，用于探索 QWOP 游戏的极限。
 
 如果您成功训练了模型，您可以把回放文件上传我们的网站冲榜 [run.lyihub.com](https://run.lyihub.com/)，详见**上传到我们的游戏榜单**部分。
 
@@ -199,14 +199,22 @@ score 是游戏结束时的最终距离，这里代表走了98.0m，time 是消�
 
 若“提交成绩”始终为不可用状态，通常表示该回放未能成功完成对应比赛，请更换有效回放后重试。
 
+## 许可
+
+本仓库采用“开源训练框架 + 单独授权预编译物理后端”的许可结构。源码、训练脚本、示例配置和文档按 Apache License 2.0 授权，详见 [LICENSE](LICENSE)。
+
+`bin/running_physics.dll` 不属于 Apache License 2.0，按单独的二进制许可分发，详见 [`bin/running_physics.LICENSE.txt`](bin/running_physics.LICENSE.txt)。
+
+公开源码通过 [`src/physics_backend_api.h`](src/physics_backend_api.h) 和 [`docs/physics-backend-abi.md`](docs/physics-backend-abi.md) 描述运行时 ABI，允许用户独立实现替代物理后端。
+
+第三方软件及相关声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
 ## 致谢与第三方软件
 
-感谢 QWOP 作者 Bennett Foddy，本仓库包含预编译物理后端 running_physics.dll。该组件不属于仓库开源源码许可范围。QWOP 名称及相关权利归 Bennett Foddy 所有。
-
-本项目仅供学习、交流和研究使用，与原游戏作者无关联。原游戏名称及相关版权归其权利人所有。
+感谢 QWOP 作者 Bennett Foddy。QWOP 名称及相关权利归 Bennett Foddy 或其权利人所有。本项目仅供学习、交流和研究使用，与原游戏作者无关联。
 
 本项目使用或包含以下第三方软件：
 
-- [pybind11](GitHub - pybind/pybind11: Seamless operability between C++11 and Python)
+- [pybind11](https://github.com/pybind/pybind11)
 - [musl libc](https://musl.libc.org/)
 - [Box2D](https://box2d.org/)
