@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Build outputs
+build/
+bin/*
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+*.pyd
+*.so
+
+!bin/running_physics.dll
+
+# Training artifacts
+runs/
+checkpoints/
+replays/
+captures/
+*.pt
+*.pth
+*.onnx
+events.out.tfevents.*
+
+# Private experiment configs
+configs/*.json
+!configs/ppo_example.json
+
+# Private local assets
+/assets/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
