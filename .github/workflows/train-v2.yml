@@ -29,16 +29,16 @@ jobs:
       - name: Check environment
         run: python scripts/check_environment.py
 
-      - name: Train PPO fresh (reward v2, seed 42)
-        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 42 --checkpoint checkpoints/ppo_v2.pt --save-interval 500 --run-name gh-v2
+      - name: Train PPO speed fine-tune (reward v2, resume from 100m checkpoint)
+        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 42 --checkpoint checkpoints/ppo_v2.pt --resume-from checkpoints/ppo_v2.pt --save-interval 500 --run-name gh-v2-speed
 
       - name: Export deterministic replay
         if: ${{ always() }}
         run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_v2.pt --output replays/v2.bin
 
-      - name: Search best replay (4096 episodes)
+      - name: Search best replay (8192 episodes)
         if: ${{ always() }}
-        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_v2.pt --output replays/v2_best.bin --episodes 4096 --num-envs 256 --num-threads 2 --device cpu
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_v2.pt --output replays/v2_best.bin --episodes 8192 --num-envs 256 --num-threads 2 --device cpu
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
