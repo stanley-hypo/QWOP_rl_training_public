@@ -1,0 +1,50 @@
+name: QWOP PPO explore (fresh arch)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: windows-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Build physics env
+        run: python scripts/build.py
+
+      - name: Check environment
+        run: python scripts/check_environment.py
+
+      - name: Train PPO fresh (seed 7, frame_stack 4, wide net)
+        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 7 --frame-stack 4 --hidden-sizes 256,256 --ent-coef 0.02 --checkpoint checkpoints/ppo_explore.pt --save-interval 200 --run-name gh-explore1
+
+      - name: Export deterministic replay
+        if: ${{ always() }}
+        run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_explore.pt --output replays/explore.bin
+
+      - name: Search best replay (4096 episodes)
+        if: ${{ always() }}
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_explore.pt --output replays/explore_best.bin --episodes 4096 --num-envs 256 --num-threads 2 --device cpu
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: qwop-explore1
+          path: |
+            checkpoints
+            replays
+            runs
