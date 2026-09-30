@@ -1,0 +1,50 @@
+name: QWOP PPO v2 (velocity reward)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: windows-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
+      - name: Build physics env (with reward v2)
+        run: python scripts/build.py
+
+      - name: Check environment
+        run: python scripts/check_environment.py
+
+      - name: Train PPO fresh (reward v2, seed 42)
+        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 42 --checkpoint checkpoints/ppo_v2.pt --save-interval 500 --run-name gh-v2
+
+      - name: Export deterministic replay
+        if: ${{ always() }}
+        run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_v2.pt --output replays/v2.bin
+
+      - name: Search best replay (4096 episodes)
+        if: ${{ always() }}
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_v2.pt --output replays/v2_best.bin --episodes 4096 --num-envs 256 --num-threads 2 --device cpu
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: qwop-v2
+          path: |
+            checkpoints
+            replays
+            runs

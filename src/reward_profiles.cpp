@@ -34,6 +34,8 @@ float bodyHeightRewardRatio(float bodyY) {
 void RewardState::reset(const CourseSpec& course) {
     hurdles_.assign(course.hurdleLocations.size(), HurdleRewardState{});
     progressScore_ = 0.0f;
+    lastProgress_ = 0.0f;
+    lastTime_ = 0.0f;
     longJumpLandingSeen_ = false;
     longJumpPostLandingX_ = 0.0f;
 }
@@ -48,6 +50,13 @@ float RewardState::calculate(
         const float cappedProgress = std::clamp(frame.score, 0.0f, 100.0f);
         float reward = std::max(0.0f, cappedProgress - progressScore_);
         progressScore_ = std::max(progressScore_, cappedProgress);
+        // v2 velocity shaping: reward real forward speed to escape the slow-shuffle optimum
+        const float dt = std::max(0.001f, frame.sim_time - lastTime_);
+        const float velocity = std::max(0.0f, cappedProgress - lastProgress_) / dt;
+        reward += 0.05f * velocity;
+        if (velocity > 2.5f) reward += 0.02f;
+        lastProgress_ = cappedProgress;
+        lastTime_ = frame.sim_time;
         if (frame.failed || truncated) {
             reward -= 10.0f;
         } else if (frame.jump_landed) {

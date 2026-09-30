@@ -19,6 +19,8 @@ private:
 
     std::vector<HurdleRewardState> hurdles_;
     float progressScore_ = 0.0f;
+    float lastProgress_ = 0.0f;
+    float lastTime_ = 0.0f;
     bool longJumpLandingSeen_ = false;
     float longJumpPostLandingX_ = 0.0f;
 };
