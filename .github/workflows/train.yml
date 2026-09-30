@@ -30,7 +30,7 @@ jobs:
         run: python scripts/check_environment.py
 
       - name: Train PPO (resume, 400 updates)
-        run: python scripts/train_ppo.py --updates 2000 --num-threads 2 --checkpoint checkpoints/ppo_final.pt --resume-from checkpoints/ppo_final.pt --save-interval 50 --run-name gh-run2
+        run: python scripts/train_ppo.py --updates 20000 --num-threads 2 --checkpoint checkpoints/ppo_final.pt --resume-from checkpoints/ppo_final.pt --save-interval 50 --run-name gh-run2
 
       - name: Export deterministic replay
         if: ${{ always() }}
