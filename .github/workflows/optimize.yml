@@ -1,0 +1,52 @@
+name: QWOP GA trajectory optimizer
+
+on:
+  workflow_dispatch:
+    inputs:
+      generations:
+        description: 'max generations'
+        required: false
+        default: '400'
+        type: string
+      max_minutes:
+        description: 'time budget (minutes)'
+        required: false
+        default: '280'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: windows-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy gymnasium
+
+      - name: Build physics env
+        run: python scripts/build.py
+
+      - name: Run GA optimizer
+        shell: bash
+        run: python scripts/ga_optimize.py --seeds replays/seeds/*.bin --generations ${{ inputs.generations }} --max-minutes ${{ inputs.max_minutes }} --out replays/ga_best.bin --progress replays/ga_progress.jsonl --pop 64 --elite 8 --max-frames 6000 --num-threads 2 --seed 42
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: qwop-ga
+          path: |
+            replays/ga_best.bin
+            replays/ga_progress.jsonl
