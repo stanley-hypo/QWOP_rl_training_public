@@ -50,17 +50,18 @@ float RewardState::calculate(
         const float cappedProgress = std::clamp(frame.score, 0.0f, 100.0f);
         float reward = std::max(0.0f, cappedProgress - progressScore_);
         progressScore_ = std::max(progressScore_, cappedProgress);
-        // v2 velocity shaping: reward real forward speed to escape the slow-shuffle optimum
+        // v3: stronger velocity gradient + steep completion bonus to force faster gaits
         const float dt = std::max(0.001f, frame.sim_time - lastTime_);
         const float velocity = std::max(0.0f, cappedProgress - lastProgress_) / dt;
-        reward += 0.05f * velocity;
-        if (velocity > 2.5f) reward += 0.02f;
+        reward += 0.12f * velocity;
+        if (velocity > 2.5f) reward += 0.05f;
+        if (velocity > 3.5f) reward += 0.08f;
         lastProgress_ = cappedProgress;
         lastTime_ = frame.sim_time;
         if (frame.failed || truncated) {
             reward -= 10.0f;
         } else if (frame.jump_landed) {
-            reward += 120.0f - frame.sim_time;
+            reward += 240.0f - 2.0f * frame.sim_time;
         }
         return reward;
     }
