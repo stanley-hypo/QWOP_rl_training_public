@@ -66,6 +66,7 @@ jobs:
           git config user.email "qwop-chain@users.noreply.github.com"
           git add -f checkpoints/ppo_v2.pt chain_state.txt
           git commit -m "chain: round $N checkpoint update" || { echo "nothing to commit"; exit 0; }
+          git pull --rebase -X ours origin main || { echo "rebase conflict - manual fix needed"; exit 1; }
           git push
           if [ "$N" -lt 5 ]; then
             gh workflow run train-v2.yml --ref main
