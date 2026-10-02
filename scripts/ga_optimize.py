@@ -234,9 +234,15 @@ def main():
 
         best = population[0]
         if best["fit"] > best_overall["fitness"]:
+            seq = unruns(best["runs"])
+            end_frames = None
+            if best.get("res"):
+                end_frames = best["res"].get("frames")
+            if end_frames and 0 < end_frames < len(seq):
+                seq = seq[:end_frames]
             best_overall = {
                 "fitness": best["fit"],
-                "seq": unruns(best["runs"]),
+                "seq": seq,
                 "meta": dict(best["res"]),
             }
             write_replay(
