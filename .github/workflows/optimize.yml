@@ -13,6 +13,11 @@ on:
         required: false
         default: '280'
         type: string
+      seed:
+        description: 'GA seed'
+        required: false
+        default: '42'
+        type: string
 
 permissions:
   contents: write
@@ -41,7 +46,7 @@ jobs:
 
       - name: Run GA optimizer
         shell: bash
-        run: python scripts/ga_optimize.py --seeds replays/seeds/*.bin --generations ${{ inputs.generations }} --max-minutes ${{ inputs.max_minutes }} --out replays/ga_best.bin --progress replays/ga_progress.jsonl --pop 64 --elite 8 --max-frames 6000 --num-threads 2 --seed 42
+        run: python scripts/ga_optimize.py --seeds replays/seeds/*.bin --generations ${{ inputs.generations }} --max-minutes ${{ inputs.max_minutes }} --out replays/ga_best.bin --progress replays/ga_progress.jsonl --pop 64 --elite 8 --max-frames 6000 --num-threads 2 --seed ${{ inputs.seed }}
 
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
