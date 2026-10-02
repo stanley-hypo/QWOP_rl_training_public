@@ -1,0 +1,58 @@
+name: QWOP GA chain (auto harvest + reseed)
+
+on:
+  workflow_run:
+    workflows: ["QWOP GA trajectory optimizer"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: qwop-ga-chain
+  cancel-in-progress: false
+
+jobs:
+  chain:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download GA artifact
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh run download "$RUN_ID" --repo stanley-hypo/QWOP_rl_training_public --name qwop-ga -D artifact
+
+      - name: Submit best to leaderboard
+        shell: bash
+        run: |
+          BIN=$(find artifact -name "ga_best.bin" | head -1)
+          curl -s -m 60 -X POST "https://run.lyihub.com/api/replay" -F "player_name=shtse8" -F "replay=@$BIN;filename=replay.bin" | tee /tmp/resp.json
+
+      - name: Chain next round
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          N=$(cat chain/count.txt 2>/dev/null || echo 0)
+          N=$((N+1))
+          mkdir -p chain replays/seeds
+          echo "$N" > chain/count.txt
+          git config user.name "qwop-chain"
+          git config user.email "qwop-chain@users.noreply.github.com"
+          cp artifact/ga_best.bin "replays/seeds/elite_round$N.bin"
+          git add -f replays/seeds/ chain/count.txt
+          git commit -m "chain: round $N - elite seed added" || { echo "nothing to commit"; exit 0; }
+          git pull --rebase -X ours origin main || { echo "rebase conflict"; exit 1; }
+          git push
+          if [ "$N" -lt 10 ]; then
+            gh workflow run optimize.yml --ref main -f generations=85 -f max_minutes=280 -f seed=$((43 + N * 7))
+            echo "chained round $N -> next GA dispatched (seed $((43 + N * 7)))"
+          else
+            echo "chain cap (10) reached - stopping"
+          fi
