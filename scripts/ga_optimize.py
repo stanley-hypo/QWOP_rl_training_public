@@ -75,9 +75,10 @@ def mutate_runs(runs, rng, ops):
             j = min(i + 1, len(runs) - 1)
             runs[i], runs[j] = runs[j], runs[i]
         elif op == "window":
-            k = rng.randint(2, min(6, len(runs) - i))
-            seg = [r[:] for r in runs[i:i + k]]
-            runs[i:i] = seg
+            if len(runs) - i >= 2:
+                k = rng.randint(2, min(6, len(runs) - i))
+                seg = [r[:] for r in runs[i:i + k]]
+                runs[i:i] = seg
     return runs
 
 
@@ -121,37 +122,28 @@ class Evaluator:
         max_t = min(self.max_frames, acts.shape[1])
         for t in range(max_t):
             frame = np.where(done, 0, acts[:, t])
-            obs, rewards, terminated, truncated, infos = self.env.step(frame)
+            result = self.env.step_arrays(frame)
+            has_final = result["has_final"]
             for i in range(p):
                 if done[i]:
                     continue
-                if terminated[i] or truncated[i]:
+                if has_final[i]:
                     done[i] = True
-                    ri = {}
-                    try:
-                        ri = infos[i].get("reset_info", {}) or {}
-                    except Exception:
-                        pass
-                    score = float(ri.get("score", 0.0) or 0.0)
-                    time_s = float(ri.get("time", 0.0) or 0.0)
-                    success = False
-                    try:
-                        success = bool(infos[i].get("success", False))
-                    except Exception:
-                        pass
+                    score = float(result["final_score"][i])
+                    distance = float(result["final_distance"][i])
+                    time_s = float(result["final_time"][i])
+                    success = bool(result["final_success"][i])
                     if not success and score >= 99.9:
                         success = True
                     finals[i] = {
                         "score": score,
+                        "distance": distance,
                         "time": time_s,
                         "success": success,
                         "frames": t + 1,
                     }
                 else:
-                    try:
-                        last_score[i] = float(infos[i].get("score", 0.0) or 0.0)
-                    except Exception:
-                        pass
+                    last_score[i] = float(result["score"][i])
             if done.all():
                 break
         results = []
