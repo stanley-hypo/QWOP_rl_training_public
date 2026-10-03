@@ -17,7 +17,7 @@ concurrency:
 jobs:
   chain:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ always() }}
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +51,7 @@ jobs:
           git pull --rebase -X ours origin main || { echo "rebase conflict"; exit 1; }
           git push
           if [ "$N" -lt 10 ]; then
-            gh workflow run optimize.yml --ref main -f generations=85 -f max_minutes=280 -f seed=$((43 + N * 7))
+            gh workflow run optimize.yml --ref main -f generations=85 -f max_minutes=240 -f seed=$((43 + N * 7))
             echo "chained round $N -> next GA dispatched (seed $((43 + N * 7)))"
           else
             echo "chain cap (10) reached - stopping"
