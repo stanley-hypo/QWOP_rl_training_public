@@ -82,6 +82,31 @@ def mutate_runs(runs, rng, ops):
     return runs
 
 
+def cataclysm(runs, rng):
+    """Large-scale structural mutation: escape the local gait basin."""
+    runs = [r[:] for r in runs]
+    n = len(runs)
+    if n < 4:
+        return runs
+    op = rng.choice(("rotate", "double_stride", "halve", "shuffle", "reverse_seg"))
+    if op == "rotate":
+        k = rng.randrange(1, n)
+        runs = runs[k:] + runs[:k]
+    elif op == "double_stride":
+        i, j = sorted(rng.sample(range(n), 2))
+        runs[j:j] = [r[:] for r in runs[i:j]]
+    elif op == "halve":
+        runs = [r for idx, r in enumerate(runs) if idx % 2 == 0]
+    elif op == "shuffle":
+        rng.shuffle(runs)
+    elif op == "reverse_seg":
+        i, j = sorted(rng.sample(range(n), 2))
+        runs[i:j] = [r[:] for r in runs[i:j][::-1]]
+    if len(runs) < 4:
+        runs.append([0, 30])
+    return runs
+
+
 def crossover(ra, rb, rng):
     if len(ra) < 8 or len(rb) < 4:
         return [r[:] for r in ra]
@@ -198,6 +223,7 @@ def main():
     ap.add_argument("--max-frames", type=int, default=6000)
     ap.add_argument("--num-threads", type=int, default=2)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--cataclysm-every", type=int, default=15)
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
@@ -286,6 +312,15 @@ def main():
                 "fit": None,
                 "res": None,
             })
+        if args.cataclysm_every and gen % args.cataclysm_every == 0:
+            print("CATACLYSM at gen %d" % gen, flush=True)
+            for _ in range(max(4, args.pop // 8)):
+                base = rng.choice(elites)
+                next_pop.append({
+                    "runs": cataclysm(base, rng),
+                    "fit": None,
+                    "res": None,
+                })
         while len(next_pop) < args.pop:
             a = tournament(population, rng)
             b = tournament(population, rng)
