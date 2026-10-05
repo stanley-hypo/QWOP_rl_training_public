@@ -1,0 +1,65 @@
+name: QWOP 30s campaign (mega search + RND exploration)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  megasearch:
+    runs-on: windows-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: python scripts/build.py
+      - name: Mega search (16384 episodes on ppo_v2)
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_v2.pt --output replays/speed30_search.bin --episodes 16384 --num-envs 256 --num-threads 2 --device cpu
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: speed30-search
+          path: replays/speed30_search.bin
+
+  rnd_fresh:
+    runs-on: windows-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: python scripts/build.py
+      - name: Train fresh with RND exploration (novel-state seeking)
+        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 11 --frame-stack 4 --hidden-sizes 256,256 --ent-coef 0.02 --rnd-beta 0.05 --checkpoint checkpoints/ppo_rnd.pt --save-interval 200 --run-name speed30-rnd
+      - name: Export replay
+        if: __ALWAYS__
+        run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_rnd.pt --output replays/rnd.bin
+      - name: Search best replay (8192 episodes)
+        if: __ALWAYS__
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_rnd.pt --output replays/rnd_best.bin --episodes 8192 --num-envs 256 --num-threads 2 --device cpu
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: speed30-rnd
+          path: replays/rnd_best.bin
+
+  rnd_resume:
+    runs-on: windows-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: python scripts/build.py
+      - name: Resume ppo_v2 with high entropy + RND (shake the basin)
+        run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 23 --checkpoint checkpoints/ppo_rndft.pt --resume-from checkpoints/ppo_v2.pt --reset-optimizer-on-resume --ent-coef 0.03 --rnd-beta 0.03 --save-interval 200 --run-name speed30-rndft
+      - name: Export replay
+        if: __ALWAYS__
+        run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_rndft.pt --output replays/rndft.bin
+      - name: Search best replay (8192 episodes)
+        if: __ALWAYS__
+        run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_rndft.pt --output replays/rndft_best.bin --episodes 8192 --num-envs 256 --num-threads 2 --device cpu
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: speed30-rndft
+          path: replays/rndft_best.bin
