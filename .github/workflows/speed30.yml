@@ -32,10 +32,10 @@ jobs:
       - name: Train fresh with RND exploration (novel-state seeking)
         run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 11 --frame-stack 4 --hidden-sizes 256,256 --ent-coef 0.02 --rnd-beta 0.05 --checkpoint checkpoints/ppo_rnd.pt --save-interval 200 --run-name speed30-rnd
       - name: Export replay
-        if: __ALWAYS__
+        if: ${{ always() }}
         run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_rnd.pt --output replays/rnd.bin
       - name: Search best replay (8192 episodes)
-        if: __ALWAYS__
+        if: ${{ always() }}
         run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_rnd.pt --output replays/rnd_best.bin --episodes 8192 --num-envs 256 --num-threads 2 --device cpu
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
@@ -53,10 +53,10 @@ jobs:
       - name: Resume ppo_v2 with high entropy + RND (shake the basin)
         run: python scripts/train_ppo.py --updates 20000 --num-envs 64 --num-threads 2 --seed 23 --checkpoint checkpoints/ppo_rndft.pt --resume-from checkpoints/ppo_v2.pt --reset-optimizer-on-resume --ent-coef 0.03 --rnd-beta 0.03 --save-interval 200 --run-name speed30-rndft
       - name: Export replay
-        if: __ALWAYS__
+        if: ${{ always() }}
         run: python scripts/export_policy_replay.py --checkpoint checkpoints/ppo_rndft.pt --output replays/rndft.bin
       - name: Search best replay (8192 episodes)
-        if: __ALWAYS__
+        if: ${{ always() }}
         run: python scripts/search_policy_best.py --checkpoint checkpoints/ppo_rndft.pt --output replays/rndft_best.bin --episodes 8192 --num-envs 256 --num-threads 2 --device cpu
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
