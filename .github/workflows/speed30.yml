@@ -12,6 +12,20 @@ jobs:
     timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
       - name: Build
         run: python scripts/build.py
       - name: Mega search (16384 episodes on ppo_v2)
@@ -27,6 +41,20 @@ jobs:
     timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
       - name: Build
         run: python scripts/build.py
       - name: Train fresh with RND exploration (novel-state seeking)
@@ -48,6 +76,20 @@ jobs:
     timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
+
+      - name: Init submodules
+        run: git submodule update --init --recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+
       - name: Build
         run: python scripts/build.py
       - name: Resume ppo_v2 with high entropy + RND (shake the basin)

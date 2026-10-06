@@ -93,8 +93,10 @@ def cataclysm(runs, rng):
         k = rng.randrange(1, n)
         runs = runs[k:] + runs[:k]
     elif op == "double_stride":
-        i, j = sorted(rng.sample(range(n), 2))
-        runs[j:j] = [r[:] for r in runs[i:j]]
+        total = sum(r[1] for r in runs if len(r) > 1)
+        if total <= 12000:
+            i, j = sorted(rng.sample(range(n), 2))
+            runs[j:j] = [r[:] for r in runs[i:j]]
     elif op == "halve":
         runs = [r for idx, r in enumerate(runs) if idx % 2 == 0]
     elif op == "shuffle":
@@ -139,6 +141,7 @@ class Evaluator:
 
     def evaluate(self, seqs):
         p = len(seqs)
+        seqs = [s[: self.max_frames] for s in seqs]
         acts = pad_actions(seqs, p)
         done = np.zeros(p, dtype=bool)
         finals = [None] * p
